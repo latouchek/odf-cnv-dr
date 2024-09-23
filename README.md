@@ -516,10 +516,14 @@ In this section, we will walk through creating a **Disaster Recovery (DR) Policy
    - In the OpenShift Web Console, go to **Data Services** > **Disaster Recovery**.
    
 2. **Create a New DR Policy**:
-    ![DR Policy](pix/drpolicy/Screenshot%20from%202024-09-19%2006-53-25.png)
+
    - Click **Create a disaster recovery policy**.
+
+    ![DR Policy](pix/drpolicy/Screenshot%20from%202024-09-19%2006-53-25.png)
    - Provide a **name** for the DR policy (e.g., `dr-policy-cluster1-cluster2`).
+
     ![DR Policy](pix/drpolicy/Screenshot%20from%202024-09-19%2006-53-45.png)
+    
    - Select **Cluster1** as the primary cluster and **Cluster2** as the secondary cluster.
 
 3. **Configure the Replication Policy**:
@@ -536,9 +540,95 @@ In this section, we will walk through creating a **Disaster Recovery (DR) Policy
    - Once the DR policy is created, you can monitor its progress. When fully deployed, the status of the DR policy will change to **Validated**.
    ![Create DRPolicy Step](pix/drpolicy/Screenshot%20from%202024-09-19%2006-56-00.png)#### Example Commands to Verify Installed Components:
 
-You can use the following commands to view and check the status of the key components installed as part of the DR policy.
 
-1. **Check the CephBlockPool configuration**:
+#### Example Commands to Verify Installed Components:
+
+1. **Verify DRCluster Deployment**:
+
+   To check if the **DRCluster** resources have been created on both **Cluster1** and **Cluster2**, use the following command:
+
+   ```bash
+   oc get drclusters
+   ```
+
+   Example output:
+
+   ```bash
+   NAME       AGE
+   cluster1   35s
+   cluster2   35s
+   ```
+
+   This confirms that **Cluster1** and **Cluster2** have been correctly identified as part of the disaster recovery setup.
+
+2. **Validate S3 Object Bucket Access**:
+
+   After the DR policy is created, you need to validate access to the object buckets on both clusters to ensure that they can communicate and share data correctly. The following command checks if the S3 access between the hub and the managed clusters is properly configured.
+
+   Use the command below to validate the status of the **DRCluster** for **Cluster1**:
+
+   ```bash
+   oc get drcluster cluster1 -o jsonpath='{.status.conditions[2].reason}{"\n"}'
+   ```
+
+   Expected output:
+
+   ```bash
+   Succeeded
+   ```
+
+   This indicates that the S3 object bucket access and the DR configuration on **Cluster1** are functioning correctly.
+
+   Repeat the same validation for **Cluster2**:
+
+   ```bash
+   oc get drcluster cluster2 -o jsonpath='{.status.conditions[2].reason}{"\n"}'
+   ```
+
+   Expected output:
+
+   ```bash
+   Succeeded
+   ```
+
+   This confirms that **Cluster2** is also properly configured and has access to the object bucket, allowing disaster recovery operations to proceed as expected.
+
+   These commands ensure that the **Ramen Operator** has validated both clusters for disaster recovery operations and that the object bucket access has been successfully established.
+
+3. **Check the detailed DRCluster status**:
+
+   To get a detailed view of the **DRCluster** status, including information about object bucket access, fencing status, and cluster validation, use the `oc describe` command:
+
+   ```bash
+   oc describe drcluster cluster1
+   ```
+
+   Example output:
+
+   ```bash
+   Name:         cluster1
+   Namespace:    
+   Labels:       cluster.open-cluster-management.io/backup=ramen
+   API Version:  ramendr.openshift.io/v1alpha1
+   Kind:         DRCluster
+   Status:
+     Conditions:
+       Last Transition Time:  2024-09-22T19:47:14Z
+       Message:               Validated the cluster
+       Reason:                Succeeded
+       Status:                True
+       Type:                  Validated
+       Last Transition Time:  2024-09-22T19:47:13Z
+       Message:               Cluster Clean
+       Reason:                Clean
+       Status:                True
+       Type:                  Clean
+     Phase:                   Available
+   ```
+
+   This output confirms that **Cluster1** has been validated, and its status is available and ready for disaster recovery.
+
+4. **Check the CephBlockPool configuration**:
    
    To see if the **CephBlockPool** is set up with mirroring, run the following command:
 
@@ -559,7 +649,7 @@ You can use the following commands to view and check the status of the key compo
 
    This confirms that mirroring is enabled in **image** mode, meaning that each individual volume is mirrored between the clusters.
 
-2. **Verify the VolumeReplicationClass**:
+5. **Verify the VolumeReplicationClass**:
    
    To verify the configuration of the **VolumeReplicationClass**, which controls how often data is replicated, use:
 
@@ -578,7 +668,7 @@ You can use the following commands to view and check the status of the key compo
 
    This shows that data replication is done every 5 minutes (`5m`) in **snapshot** mode.
 
-3. **Check the status of object buckets**:
+6. **Check the status of object buckets**:
    
    Object buckets store metadata for PVCs and PVs. To see the status of the object buckets created for disaster recovery, run:
 
@@ -595,7 +685,7 @@ You can use the following commands to view and check the status of the key compo
 
    This shows that the object bucket is in the **Bound** phase, meaning it is correctly configured and active.
 
-4. **Check the Ramen Operator status**:
+7. **Check the Ramen Operator status**:
    
    The **Ramen Operator** coordinates the entire DR process. To confirm it’s running, use:
 
@@ -609,8 +699,6 @@ You can use the following commands to view and check the status of the key compo
    NAME                                             AGE
    odr-cluster-operator.openshift-dr-system         5h5m
    ```
-
-   This confirms that the Ramen operator, labeled as `odr-cluster-operator`, is active in the **openshift-dr-system** namespace.
 
 
 ### 7. Testing Disaster Recovery with real life scenario
