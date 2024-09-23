@@ -1,0 +1,12 @@
+apiVersion: app.k8s.io/v1beta1
+kind: Application
+metadata:
+  name: cirros-vm-app
+  namespace: default  # Namespace du Cluster Hub où ACM est installé
+spec:
+  componentKinds:
+    - group: kubevirt.io
+      kind: VirtualMachine
+  selector:
+    matchLabels:
+      drapp: dr-vm

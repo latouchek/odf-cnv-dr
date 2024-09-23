@@ -1,0 +1,207 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: odf-install-policy
+  namespace: open-cluster-management
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    # 1. Créer le Namespace openshift-odf
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-openshift-storage-namespace
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  name: openshift-storage
+    # 2. Créer l'OperatorGroup
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-odf-operatorgroup
+        spec:
+          remediationAction: enforce
+          severity: high
+          namespaceSelector:
+            include:
+              - openshift-storage
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1
+                kind: OperatorGroup
+                metadata:
+                  annotations:
+                    olm.providedAPIs: BackingStore.v1alpha1.noobaa.io,BucketClass.v1alpha1.noobaa.io,CSIAddonsNode.v1alpha1.csiaddons.openshift.io,CephBlockPool.v1.ceph.rook.io,CephBlockPoolRadosNamespace.v1.ceph.rook.io,CephBucketNotification.v1.ceph.rook.io,CephBucketTopic.v1.ceph.rook.io,CephClient.v1.ceph.rook.io,CephCluster.v1.ceph.rook.io,CephFilesystem.v1.ceph.rook.io,CephFilesystemMirror.v1.ceph.rook.io,CephFilesystemSubVolumeGroup.v1.ceph.rook.io,CephNFS.v1.ceph.rook.io,CephObjectRealm.v1.ceph.rook.io,CephObjectStore.v1.ceph.rook.io,CephObjectStoreUser.v1.ceph.rook.io,CephObjectZone.v1.ceph.rook.io,CephObjectZoneGroup.v1.ceph.rook.io,CephRBDMirror.v1.ceph.rook.io,NamespaceStore.v1alpha1.noobaa.io,NetworkFence.v1alpha1.csiaddons.openshift.io,NooBaa.v1alpha1.noobaa.io,NooBaaAccount.v1alpha1.noobaa.io,OCSInitialization.v1.ocs.openshift.io,ObjectBucket.v1alpha1.objectbucket.io,ObjectBucketClaim.v1alpha1.objectbucket.io,ReclaimSpaceCronJob.v1alpha1.csiaddons.openshift.io,ReclaimSpaceJob.v1alpha1.csiaddons.openshift.io,StorageClassRequest.v1alpha1.ocs.openshift.io,StorageCluster.v1.ocs.openshift.io,StorageConsumer.v1alpha1.ocs.openshift.io,StorageSystem.v1alpha1.odf.openshift.io,VolumeReplication.v1alpha1.replication.storage.openshift.io,VolumeReplicationClass.v1alpha1.replication.storage.openshift.io
+                  name: openshift-storage
+                  namespace: openshift-storage
+                spec:
+                  targetNamespaces:
+                    - openshift-storage
+    # 3. Créer la Subscription pour ODF
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-odf-subscription
+        spec:
+          remediationAction: enforce
+          severity: high
+          namespaceSelector:
+            include:
+              - openshift-storage
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1alpha1
+                kind: Subscription
+                metadata:
+                  labels:
+                    operators.coreos.com/odf-operator.openshift-storage: ""
+                  name: odf-operator
+                  namespace: openshift-storage
+                spec:
+                  channel: stable-4.16
+                  installPlanApproval: Automatic
+                  name: odf-operator
+                  source: redhat-operators
+                  sourceNamespace: openshift-marketplace
+    # 4. Créer l'instance StorageCluster ODF
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-odf-storagecluster
+        spec:
+          remediationAction: enforce
+          severity: critical
+          namespaceSelector:
+            include:
+              - openshift-storage
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: ocs.openshift.io/v1
+                kind: StorageCluster
+                metadata:
+                  name: ocs-storagecluster
+                  namespace: openshift-storage
+                  annotations:
+                    cluster.ocs.openshift.io/local-devices: "true"
+                    ocs.openshift.io/clusterIsDisasterRecoveryTarget: "true"
+                    uninstall.ocs.openshift.io/cleanup-policy: "delete"
+                    uninstall.ocs.openshift.io/mode: "graceful"
+                spec:
+                  arbiter: {}
+                  encryption:
+                    keyRotation:
+                      schedule: "@weekly"
+                    kms: {}
+                  externalStorage: {}
+                  flexibleScaling: true
+                  managedResources:
+                    cephBlockPools:
+                      defaultStorageClass: true
+                    cephCluster: {}
+                    cephConfig: {}
+                    cephDashboard: {}
+                    cephFilesystems:
+                      dataPoolSpec:
+                        replicated:
+                          size: 0
+                    cephNonResilientPools:
+                      count: 1
+                      volumeClaimTemplate:
+                        spec:
+                          resources:
+                            requests:
+                              storage: 1
+                          storageClassName: localblock-sc
+                          volumeMode: Block
+                    cephObjectStoreUsers: {}
+                    cephObjectStores: {}
+                    cephRBDMirror:
+                      daemonCount: 1
+                    cephToolbox: {}
+                  mirroring: {}
+                  monDataDirHostPath: /var/lib/rook
+                  network:
+                    connections:
+                      encryption: {}
+                    multiClusterService: {}
+                  nfs:
+                    enable: true
+                  nodeTopologies: {}
+                  resourceProfile: lean
+                  storageDeviceSets:
+                    - name: ocs-deviceset-localblock-sc
+                      count: 12
+                      replica: 1
+                      dataPVCTemplate:
+                        spec:
+                          accessModes:
+                            - ReadWriteOnce
+                          resources:
+                            requests:
+                              storage: 1
+                          storageClassName: localblock-sc
+                          volumeMode: Block
+# 6. Créer le Console Plugin pour ODF
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-odf-consoleplugin
+        spec:
+          remediationAction: enforce
+          severity: high
+          namespaceSelector:
+            include:
+              - openshift-console
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: console.openshift.io/v1
+                kind: ConsolePlugin
+                metadata:
+                  name: ocs-console-plugin
+                  namespace: openshift-console
+                spec:
+                  link:
+                    href: /api/plugins/ocs.openshift.io/v1
+                    target: "_blank"
+                  displayName: OpenShift Data Foundation
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: odf-install-placementbinding
+  namespace: open-cluster-management
+placementRef:
+  kind: PlacementRule
+  name: odf-install-placementrule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - kind: Policy
+    name: odf-install-policy
+    apiGroup: policy.open-cluster-management.io
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: odf-install-placementrule
+  namespace: open-cluster-management
+spec:
+  clusterSelector:
+    matchLabels:
+      cluster.open-cluster-management.io/clusterset: saq-dr

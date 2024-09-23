@@ -1,0 +1,45 @@
+dns-resolver:
+  config:
+    server:
+    - 10.17.3.1
+interfaces:
+- name: ens3
+  ipv4:
+    address:
+    - ip: 10.17.3.30
+      prefix-length: 24
+    dhcp: false
+    enabled: true
+  # ipv6:
+  #   address:
+  #   - ip: 2001:db8:ca2:2::2
+  #     prefix-length: 64
+  #   enabled: true
+  state: up
+  type: ethernet
+# - name: ens4
+#   ipv4:
+#     address:
+#     - ip: 10.17.5.2
+#       prefix-length: 24
+#     dhcp: false
+#     enabled: true
+  # ipv6:
+  #   address:
+  #   - ip: 2001:db8:ca2:3::2
+  #     prefix-length: 64
+  #   enabled: true
+  # state: up
+  # type: ethernet
+- name: ens4
+  type: ethernet
+  state: up
+  ipv4:
+    enabled: false
+    dhcp: false
+routes:
+  config:
+  - destination: 0.0.0.0/0
+    next-hop-address: 10.17.3.1
+    next-hop-interface: ens3
+    table-id: 254

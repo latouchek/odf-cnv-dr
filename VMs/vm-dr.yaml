@@ -1,0 +1,45 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-rhel-datavolume-block
+  namespace: default
+  labels:
+    kubevirt.io/vm: vm-rhel-datavolume
+    drapp: dr-vm
+spec:
+  dataVolumeTemplates:
+    - metadata:
+        labels:
+          drapp: dr-vm
+        name: rhel-dv
+      spec:
+        source:
+          registry:
+            url: 'docker://registry.redhat.io/rhel9/rhel-guest-image:9.4-1175'
+        storage:
+          resources:
+            requests:
+              storage: 20Gi
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: vm-rhel-datavolume
+    spec:
+      architecture: amd64
+      domain:
+        devices:
+          disks:
+            - disk:
+                bus: virtio
+              name: datavolumedisk1
+        machine:
+          type: pc-q35-rhel9.4.0
+        resources:
+          requests:
+            memory: 4Gi
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - dataVolume:
+            name: rhel-dv
+          name: datavolumedisk1

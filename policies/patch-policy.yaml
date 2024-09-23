@@ -1,0 +1,74 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: image-registry-patch-policy
+  namespace: open-cluster-management
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: patch-image-registry-config
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: imageregistry.operator.openshift.io/v1
+                kind: Config
+                metadata:
+                  name: cluster
+                spec:
+                  managementState: Managed
+                  storage:
+                    pvc:
+                      claim: image-registry-storage
+                  defaultRoute: true
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: set-default-storageclass
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: storage.k8s.io/v1
+                kind: StorageClass
+                metadata:
+                  name: ocs-storagecluster-ceph-rbd
+                  annotations:
+                    "storageclass.kubernetes.io/is-default-class": "true"
+                provisioner: openshift-storage.rbd.csi.ceph.com
+                reclaimPolicy: Delete
+                volumeBindingMode: Immediate
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: patch-policy-placementbinding
+  namespace: open-cluster-management
+placementRef:
+  kind: PlacementRule
+  name: patch-policy-placementrule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - kind: Policy
+    name: image-registry-patch-policy
+    apiGroup: policy.open-cluster-management.io
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: patch-policy-placementrule
+  namespace: open-cluster-management
+spec:
+  clusterSelector:
+    matchLabels:
+      cluster.open-cluster-management.io/clusterset: saq-dr

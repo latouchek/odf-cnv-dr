@@ -1,0 +1,62 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: pvc-policy
+  namespace: open-cluster-management
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-pvc-image-registry
+        spec:
+          remediationAction: enforce
+          severity: high
+          namespaceSelector:
+            include:
+              - "openshift-image-registry"
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                metadata:
+                  name: image-registry-storage
+                  annotations:
+                    imageregistry.openshift.io: "true"
+                    manager: cluster-image-registry-operator
+                spec:
+                  accessModes:
+                    - ReadWriteMany
+                  resources:
+                    requests:
+                      storage: 15Gi
+                  volumeMode: Filesystem
+                  storageClassName: ocs-storagecluster-cephfs
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: pvc-policy-placementbinding
+  namespace: open-cluster-management
+placementRef:
+  kind: PlacementRule
+  name: pvc-policy-placementrule
+  apiGroup: apps.open-cluster-management.io
+subjects:
+  - kind: Policy
+    name: pvc-policy
+    apiGroup: policy.open-cluster-management.io
+---
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: pvc-policy-placementrule
+  namespace: open-cluster-management
+spec:
+  clusterSelector:
+    matchLabels:
+      cluster.open-cluster-management.io/clusterset: saq-dr

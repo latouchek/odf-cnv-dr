@@ -1,0 +1,18 @@
+apiVersion: ramendr.openshift.io/v1alpha1
+kind: DRPolicy
+metadata:
+  finalizers:
+  - drpolicies.ramendr.openshift.io/ramen
+  generation: 1
+  labels:
+    cluster.open-cluster-management.io/backup: ramen
+  name: dr-policy
+  resourceVersion: "799123"
+  uid: 2b74b84d-dc91-4658-87d0-0c3d9604b3c9
+spec:
+  drClusters:
+  - cluster1
+  - cluster2
+  replicationClassSelector: {}
+  schedulingInterval: 5m
+  volumeSnapshotClassSelector: {}

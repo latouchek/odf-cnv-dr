@@ -1,0 +1,28 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: cirros-vm
+  namespace: acm-discovered-vm
+  labels:
+    drapp: dr-vm
+spec:
+  running: true  # La VM démarrera automatiquement
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: cirros-vm
+        drapp: dr-vm
+    spec:
+      domain:
+        devices:
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+        resources:
+          requests:
+            memory: 512Mi
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: cirros-datavolume

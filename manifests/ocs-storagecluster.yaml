@@ -1,0 +1,169 @@
+Name:         ocs-storagecluster
+Namespace:    openshift-storage
+Labels:       <none>
+Annotations:  cluster.ocs.openshift.io/local-devices: true
+              ocs.openshift.io/clusterIsDisasterRecoveryTarget: true
+              uninstall.ocs.openshift.io/cleanup-policy: delete
+              uninstall.ocs.openshift.io/mode: graceful
+API Version:  ocs.openshift.io/v1
+Kind:         StorageCluster
+Metadata:
+  Creation Timestamp:  2024-09-16T23:32:21Z
+  Finalizers:
+    storagecluster.ocs.openshift.io
+  Generation:  2
+  Owner References:
+    API Version:     odf.openshift.io/v1alpha1
+    Kind:            StorageSystem
+    Name:            ocs-storagecluster-storagesystem
+    UID:             1081442a-0a24-46da-b4cf-3fd384d2a667
+  Resource Version:  46850
+  UID:               2b3fd229-9b5c-4a95-adba-e41f3017d363
+Spec:
+  Arbiter:
+  Encryption:
+    Key Rotation:
+      Schedule:  @weekly
+    Kms:
+  External Storage:
+  Flexible Scaling:  true
+  Managed Resources:
+    Ceph Block Pools:
+      Default Storage Class:  true
+    Ceph Cluster:
+    Ceph Config:
+    Ceph Dashboard:
+    Ceph Filesystems:
+      Data Pool Spec:
+        Application:  
+        Erasure Coded:
+          Coding Chunks:  0
+          Data Chunks:    0
+        Mirroring:
+        Quotas:
+        Replicated:
+          Size:  0
+        Status Check:
+          Mirror:
+    Ceph Non Resilient Pools:
+      Count:  1
+      Resources:
+      Volume Claim Template:
+        Metadata:
+        Spec:
+          Resources:
+        Status:
+    Ceph Object Store Users:
+    Ceph Object Stores:
+    Ceph RBD Mirror:
+      Daemon Count:  1
+    Ceph Toolbox:
+  Mirroring:
+  Mon Data Dir Host Path:  /var/lib/rook
+  Network:
+    Connections:
+      Encryption:
+    Multi Cluster Service:
+  Nfs:
+    Enable:  true
+  Node Topologies:
+  Resource Profile:  lean
+  Storage Device Sets:
+    Config:
+    Count:  12
+    Data PVC Template:
+      Metadata:
+      Spec:
+        Access Modes:
+          ReadWriteOnce
+        Resources:
+          Requests:
+            Storage:         1
+        Storage Class Name:  localblock-sc
+        Volume Mode:         Block
+      Status:
+    Name:  ocs-deviceset-localblock-sc
+    Placement:
+    Prepare Placement:
+    Replica:  1
+    Resources:
+Status:
+  Conditions:
+    Last Heartbeat Time:      2024-09-16T23:32:21Z
+    Last Transition Time:     2024-09-16T23:32:21Z
+    Message:                  Version check successful
+    Reason:                   VersionMatched
+    Status:                   False
+    Type:                     VersionMismatch
+    Last Heartbeat Time:      2024-09-16T23:40:33Z
+    Last Transition Time:     2024-09-16T23:36:29Z
+    Message:                  Reconcile completed successfully
+    Reason:                   ReconcileCompleted
+    Status:                   True
+    Type:                     ReconcileComplete
+    Last Heartbeat Time:      2024-09-16T23:40:33Z
+    Last Transition Time:     2024-09-16T23:36:30Z
+    Message:                  Reconcile completed successfully
+    Reason:                   ReconcileCompleted
+    Status:                   True
+    Type:                     Available
+    Last Heartbeat Time:      2024-09-16T23:40:33Z
+    Last Transition Time:     2024-09-16T23:36:30Z
+    Message:                  Reconcile completed successfully
+    Reason:                   ReconcileCompleted
+    Status:                   False
+    Type:                     Progressing
+    Last Heartbeat Time:      2024-09-16T23:40:33Z
+    Last Transition Time:     2024-09-16T23:32:21Z
+    Message:                  Reconcile completed successfully
+    Reason:                   ReconcileCompleted
+    Status:                   False
+    Type:                     Degraded
+    Last Heartbeat Time:      2024-09-16T23:40:33Z
+    Last Transition Time:     2024-09-16T23:36:30Z
+    Message:                  Reconcile completed successfully
+    Reason:                   ReconcileCompleted
+    Status:                   True
+    Type:                     Upgradeable
+  Current Mon Count:          3
+  Default Ceph Device Class:  ssd
+  Failure Domain:             host
+  Failure Domain Key:         kubernetes.io/hostname
+  Failure Domain Values:
+    ocp4-worker0.cluster1.lab.local
+    ocp4-worker1.cluster1.lab.local
+    ocp4-worker2.cluster1.lab.local
+  Images:
+    Ceph:
+      Actual Image:   registry.redhat.io/rhceph/rhceph-7-rhel9@sha256:75bd8969ab3f86f2203a1ceb187876f44e54c9ee3b917518c4d696cf6cd88ce3
+      Desired Image:  registry.redhat.io/rhceph/rhceph-7-rhel9@sha256:75bd8969ab3f86f2203a1ceb187876f44e54c9ee3b917518c4d696cf6cd88ce3
+    Noobaa Core:
+      Actual Image:   registry.redhat.io/odf4/mcg-core-rhel9@sha256:728d12151320b501b63ae8cd60f10430532d3e0d231e2fcf02098c36e7e64249
+      Desired Image:  registry.redhat.io/odf4/mcg-core-rhel9@sha256:728d12151320b501b63ae8cd60f10430532d3e0d231e2fcf02098c36e7e64249
+    Noobaa DB:
+      Actual Image:   registry.redhat.io/rhel9/postgresql-15@sha256:f1f581d8974799f17d4707f9161b2d0568a07255e535ca3be3b36ce254b091a4
+      Desired Image:  registry.redhat.io/rhel9/postgresql-15@sha256:f1f581d8974799f17d4707f9161b2d0568a07255e535ca3be3b36ce254b091a4
+  Kms Server Connection:
+  Last Applied Resource Profile:  lean
+  Node Topologies:
+    Labels:
+      kubernetes.io/hostname:
+        ocp4-worker0.cluster1.lab.local
+        ocp4-worker1.cluster1.lab.local
+        ocp4-worker2.cluster1.lab.local
+  Phase:  Ready
+  Related Objects:
+    API Version:       ceph.rook.io/v1
+    Kind:              CephCluster
+    Name:              ocs-storagecluster-cephcluster
+    Namespace:         openshift-storage
+    Resource Version:  46837
+    UID:               b4382f94-6556-4425-ab9a-7acee8cb5ef4
+    API Version:       noobaa.io/v1alpha1
+    Kind:              NooBaa
+    Name:              noobaa
+    Namespace:         openshift-storage
+    Resource Version:  46787
+    UID:               e68f9c90-2529-46f1-8743-de706f73b341
+  Version:             4.16.1
+Events:                <none>

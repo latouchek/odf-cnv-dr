@@ -1,0 +1,9 @@
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: placementrule-saq-dr
+  namespace: open-cluster-management
+spec:
+  clusterSelector:
+    matchLabels:
+      cluster.open-cluster-management.io/clusterset: saq-dr
